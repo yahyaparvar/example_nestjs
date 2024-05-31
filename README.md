@@ -39,6 +39,7 @@ RABBITMQ_URI= YOUR_RABBITMQ_URI
 ```
 
 ## cURL Commands
+here is some curl commands to use in Postman, Insomnia etc.
 
 ### <a name="create">1. Create User</a>
 
