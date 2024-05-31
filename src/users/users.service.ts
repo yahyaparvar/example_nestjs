@@ -48,7 +48,7 @@ export class UsersService {
       <div style="font-family: Arial, sans-serif; color: #333;">
         <table style="width: 100%; max-width: 600px; margin: auto; border-collapse: collapse;">
           <tr>
-            <td style="background-color: #4CAF50; padding: 20px; text-align: center; color: white;">
+            <td style="background-color: #161617; padding: 20px; text-align: center; color: white;">
               <h1>Welcome to Our Service!</h1>
             </td>
           </tr>
@@ -57,17 +57,17 @@ export class UsersService {
               <h2>Hello ${user.name},</h2>
               <p>We're excited to have you on board. Thank you for joining our service!</p>
               <p style="margin: 20px 0;">
-                <a href="https://your-service-url.com" style="padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px;">
+                <a href="https://payever.careers/uk" style="padding: 10px 20px; background-color: #161617; color: white; text-decoration: none; border-radius: 5px;">
                   Get Started
                 </a>
               </p>
-              <p>If you have any questions, feel free to <a href="mailto:support@your-service-url.com" style="color: #4CAF50;">contact us</a>.</p>
+              <p>If you have any questions, feel free to <a href="mailto:support@your-service-url.com" style="color: #161617;">contact us</a>.</p>
               <p>Best regards,<br>Your Company</p>
             </td>
           </tr>
           <tr>
             <td style="background-color: #f1f1f1; padding: 10px; text-align: center; font-size: 12px; color: #888;">
-              © ${new Date().getFullYear()} Your Company. All rights reserved.
+              © ${new Date().getFullYear()} Payever. All rights reserved.
             </td>
           </tr>
         </table>
