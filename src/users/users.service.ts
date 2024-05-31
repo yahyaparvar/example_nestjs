@@ -17,7 +17,7 @@ export class UsersService {
     @Inject('RABBITMQ_SERVICE') private client: ClientProxy,
   ) {
     this.transporter = nodemailer.createTransport({
-      service: 'smtp.gmail.com',
+      service: 'gmail',
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
@@ -40,11 +40,39 @@ export class UsersService {
 
   private async sendEmail(user: User) {
     const mailOptions = {
-      from: `"Your Name" <${process.env.SMTP_USER}>`, // sender address
-      to: user.email, // list of receivers
-      subject: 'Welcome to Our Service', // Subject line
-      text: `Hello ${user.name}, welcome to our service!`, // plain text body
-      html: `<b>Hello ${user.name}</b>, welcome to our service!`, // html body
+      from: `Yahya from Payever`,
+      to: user.email,
+      subject: 'Welcome to Our Service',
+      text: `Hello ${user.name}, welcome to our service!`,
+      html: `
+      <div style="font-family: Arial, sans-serif; color: #333;">
+        <table style="width: 100%; max-width: 600px; margin: auto; border-collapse: collapse;">
+          <tr>
+            <td style="background-color: #4CAF50; padding: 20px; text-align: center; color: white;">
+              <h1>Welcome to Our Service!</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 20px; background-color: #f9f9f9;">
+              <h2>Hello ${user.name},</h2>
+              <p>We're excited to have you on board. Thank you for joining our service!</p>
+              <p style="margin: 20px 0;">
+                <a href="https://your-service-url.com" style="padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px;">
+                  Get Started
+                </a>
+              </p>
+              <p>If you have any questions, feel free to <a href="mailto:support@your-service-url.com" style="color: #4CAF50;">contact us</a>.</p>
+              <p>Best regards,<br>Your Company</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color: #f1f1f1; padding: 10px; text-align: center; font-size: 12px; color: #888;">
+              © ${new Date().getFullYear()} Your Company. All rights reserved.
+            </td>
+          </tr>
+        </table>
+      </div>
+    `,
     };
 
     try {
