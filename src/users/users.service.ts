@@ -1,9 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { InjectModel } from '@nestjs/mongoose';
+import axios from 'axios';
+import * as crypto from 'crypto';
 import * as dotenv from 'dotenv';
+import * as fs from 'fs';
 import { Model } from 'mongoose';
 import * as nodemailer from 'nodemailer';
+import * as path from 'path';
+import { AvatarDocument } from './schemas/avatar.schema';
 import { User } from './schemas/user.schema';
 
 dotenv.config();
@@ -14,6 +19,7 @@ export class UsersService {
 
   constructor(
     @InjectModel('User') private readonly userModel: Model<User>,
+    @InjectModel('Avatar') private readonly avatarModel: Model<AvatarDocument>,
     @Inject('RABBITMQ_SERVICE') private client: ClientProxy,
   ) {
     this.transporter = nodemailer.createTransport({
@@ -61,7 +67,7 @@ export class UsersService {
                   Get Started
                 </a>
               </p>
-              <p>If you have any questions, feel free to <a href="mailto:support@your-service-url.com" style="color: #161617;">contact us</a>.</p>
+              <p>If you have any questions, feel free to <a href="mailto:yahyaparvar1@gmail.com.com" style="color: #161617;">contact us</a>.</p>
               <p>Best regards,<br>Your Company</p>
             </td>
           </tr>
@@ -80,6 +86,58 @@ export class UsersService {
       console.log(`Email sent to ${user.email}`);
     } catch (error) {
       console.error(`Error sending email to ${user.email}:`, error);
+    }
+  }
+
+  async getUserById(userId: string) {
+    try {
+      const response = await axios.get(`https://reqres.in/api/users/${userId}`);
+      return response.data.data; // Returns the user data as is
+    } catch (error) {
+      throw new Error(`Unable to fetch user: ${error.message}`);
+    }
+  }
+
+  async getUserAvatar(userId: string) {
+    try {
+      const avatarEntry = await this.avatarModel.findOne({ userId }).exec();
+      if (avatarEntry) {
+        const filePath = path.join(
+          __dirname,
+          '..',
+          '..',
+          'avatars',
+          `${avatarEntry.hash}.jpg`,
+        );
+        const base64Image = fs.readFileSync(filePath, { encoding: 'base64' });
+        return base64Image;
+      } else {
+        const user = await this.getUserById(userId);
+        const avatarUrl = user.avatar;
+
+        const response = await axios.get(avatarUrl, {
+          responseType: 'arraybuffer',
+        });
+        const imageBuffer = response.data;
+
+        const hash = crypto.createHash('md5').update(imageBuffer).digest('hex');
+        const filePath = path.join(
+          __dirname,
+          '..',
+          '..',
+          'avatars',
+          `${hash}.jpg`,
+        );
+
+        fs.writeFileSync(filePath, imageBuffer);
+
+        const newAvatar = new this.avatarModel({ userId, hash });
+        await newAvatar.save();
+
+        return imageBuffer.toString('base64');
+      }
+    } catch (error) {
+      throw new Error(`Unable to fetch avatar: ${error.message}`);
     }
   }
 }
