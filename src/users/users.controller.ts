@@ -1,7 +1,7 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { UsersService } from './users.service';
 
-@Controller('api/users') // Ensure this path matches the endpoint you're calling
+@Controller('api/users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -19,5 +19,10 @@ export class UsersController {
   @Get(':userId/avatar')
   async getUserAvatar(@Param('userId') userId: string) {
     return this.usersService.getUserAvatar(userId);
+  }
+
+  @Delete(':userId/avatar')
+  async deleteUserAvatar(@Param('userId') userId: string) {
+    return this.usersService.deleteUserAvatar(userId);
   }
 }

@@ -140,4 +140,27 @@ export class UsersService {
       throw new Error(`Unable to fetch avatar: ${error.message}`);
     }
   }
+  async deleteUserAvatar(userId: string) {
+    try {
+      const avatarEntry = await this.avatarModel.findOne({ userId }).exec();
+      if (avatarEntry) {
+        const filePath = path.join(
+          __dirname,
+          '..',
+          '..',
+          'avatars',
+          `${avatarEntry.hash}.jpg`,
+        );
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+        await this.avatarModel.deleteOne({ userId }).exec();
+        return { message: 'Avatar deleted successfully' };
+      } else {
+        return { message: 'Avatar not found' };
+      }
+    } catch (error) {
+      throw new Error(`Unable to delete avatar: ${error.message}`);
+    }
+  }
 }
