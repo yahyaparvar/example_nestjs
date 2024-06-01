@@ -1,6 +1,7 @@
 import { ClientProxy } from '@nestjs/microservices';
 import { getModelToken } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
+import axios from 'axios';
 import { Model } from 'mongoose';
 import * as nodemailer from 'nodemailer';
 import { User } from './schemas/user.schema';
@@ -90,6 +91,47 @@ describe('UsersService', () => {
         }),
       );
       console.log('\x1b[32m%s\x1b[0m', '✓ Email sent with correct details');
+    });
+  });
+
+  describe('getUserById', () => {
+    it('should return user data by ID', async () => {
+      const userId = '1';
+      const userResponse = {
+        data: {
+          id: 1,
+          email: 'janet.weaver@reqres.in',
+          first_name: 'Janet',
+          last_name: 'Weaver',
+          avatar: 'https://reqres.in/img/faces/1-image.jpg',
+        },
+      };
+
+      jest.spyOn(axios, 'get').mockResolvedValue({ data: userResponse });
+
+      const result = await service.getUserById(userId);
+
+      expect(result).toEqual(userResponse.data);
+      expect(axios.get).toHaveBeenCalledWith(
+        `https://reqres.in/api/users/${userId}`,
+      );
+      console.log(
+        '\x1b[32m%s\x1b[0m',
+        '✓ Fetched user data by ID successfully',
+      );
+    });
+
+    it('should throw an error if unable to fetch user data', async () => {
+      const userId = '1';
+      const errorMessage = 'Unable to fetch user';
+
+      jest.spyOn(axios, 'get').mockRejectedValue(new Error(errorMessage));
+
+      await expect(service.getUserById(userId)).rejects.toThrow(errorMessage);
+      console.log(
+        '\x1b[32m%s\x1b[0m',
+        '✓ Shows error if unable to fetch user data',
+      );
     });
   });
 });
