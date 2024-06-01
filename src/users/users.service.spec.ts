@@ -1,47 +1,42 @@
+import { ClientProxy } from '@nestjs/microservices';
 import { getModelToken } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
-import * as crypto from 'crypto';
-import * as fs from 'fs';
+import { Model } from 'mongoose';
+import * as nodemailer from 'nodemailer';
+import { User } from './schemas/user.schema';
 import { UsersService } from './users.service';
 
+jest.mock('nodemailer');
 jest.mock('axios');
-jest.mock('fs');
-jest.mock('path');
 
 describe('UsersService', () => {
   let service: UsersService;
+  let userModel: Model<User>;
+  let client: ClientProxy;
+  let sendMailMock: jest.Mock;
 
   beforeEach(async () => {
+    sendMailMock = jest.fn().mockResolvedValue({}); // Mock sendMail function
+
+    (nodemailer.createTransport as jest.Mock).mockReturnValue({
+      sendMail: sendMailMock,
+    });
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UsersService,
         {
           provide: getModelToken('User'),
           useValue: {
-            new: jest.fn().mockResolvedValue({}),
-            constructor: jest.fn().mockResolvedValue({}),
-            find: jest.fn(),
-            findOne: jest.fn(),
-            exec: jest.fn(),
             create: jest.fn(),
-            remove: jest.fn(),
-            save: jest.fn(),
-            deleteOne: jest.fn(),
+            save: jest.fn().mockImplementation(function () {
+              return this;
+            }),
           },
         },
         {
           provide: getModelToken('Avatar'),
-          useValue: {
-            new: jest.fn().mockResolvedValue({}),
-            constructor: jest.fn().mockResolvedValue({}),
-            find: jest.fn(),
-            findOne: jest.fn(),
-            exec: jest.fn(),
-            create: jest.fn(),
-            remove: jest.fn(),
-            save: jest.fn(),
-            deleteOne: jest.fn(),
-          },
+          useValue: {},
         },
         {
           provide: 'RABBITMQ_SERVICE',
@@ -53,21 +48,48 @@ describe('UsersService', () => {
     }).compile();
 
     service = module.get<UsersService>(UsersService);
-    jest.spyOn(fs, 'writeFileSync').mockImplementation(() => {});
-    jest
-      .spyOn(fs, 'readFileSync')
-      .mockImplementation(() => Buffer.from('avatar image data'));
-    jest.spyOn(fs, 'unlinkSync').mockImplementation(() => {});
-    jest.spyOn(crypto, 'createHash').mockImplementation(
-      () =>
-        ({
-          update: jest.fn().mockReturnThis(),
-          digest: jest.fn().mockReturnValue('mockHash'),
-        }) as any,
-    );
+    userModel = module.get<Model<User>>(getModelToken('User'));
+    client = module.get<ClientProxy>('RABBITMQ_SERVICE');
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  describe('createUser', () => {
+    it('should create a new user, emit an event, and send an email', async () => {
+      const userDto = { name: 'test', email: 'test@gmail.com' };
+      const createdUser = { ...userDto, _id: 'mockId' };
+
+      jest.spyOn(userModel, 'create').mockResolvedValue(createdUser as any);
+      jest.spyOn(client, 'emit').mockImplementation(() => null);
+
+      const result = await service.createUser(userDto.name, userDto.email);
+
+      expect(result).toEqual(createdUser);
+      console.log('\x1b[32m%s\x1b[0m', '✓ User creation successful');
+
+      expect(userModel.create).toHaveBeenCalledWith(userDto);
+      console.log(
+        '\x1b[32m%s\x1b[0m',
+        '✓ Called userModel.create with correct user data',
+      );
+
+      expect(client.emit).toHaveBeenCalledWith('user_created', createdUser);
+      console.log(
+        '\x1b[32m%s\x1b[0m',
+        '✓ Event emitted to RabbitMQ with correct data',
+      );
+
+      expect(sendMailMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: userDto.email,
+          subject: 'Welcome to Payever',
+          text: expect.any(String),
+          html: expect.any(String),
+        }),
+      );
+      console.log('\x1b[32m%s\x1b[0m', '✓ Email sent with correct details');
+    });
   });
 });

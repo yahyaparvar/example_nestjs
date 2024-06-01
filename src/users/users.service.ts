@@ -32,8 +32,7 @@ export class UsersService {
   }
 
   async createUser(name: string, email: string): Promise<User> {
-    const newUser = new this.userModel({ name, email });
-    const user = await newUser.save();
+    const user = await this.userModel.create({ name, email });
 
     // Send a message to RabbitMQ
     this.client.emit('user_created', user);
@@ -48,20 +47,20 @@ export class UsersService {
     const mailOptions = {
       from: `Yahya from Payever`,
       to: user.email,
-      subject: 'Welcome to Our Payever',
-      text: `Hello ${user.name}, welcome to our Payever!`,
+      subject: 'Welcome to Payever',
+      text: `Hello ${user.name}, welcome to Payever!`,
       html: `
       <div style="font-family: Arial, sans-serif; color: #333;">
         <table style="width: 100%; max-width: 600px; margin: auto; border-collapse: collapse;">
           <tr>
             <td style="background-color: #161617; padding: 20px; text-align: center; color: white;">
-              <h1>Welcome to Our Service!</h1>
+              <h1>Welcome to Payever!</h1>
             </td>
           </tr>
           <tr>
             <td style="padding: 20px; background-color: #f9f9f9;">
               <h2>Hello ${user.name},</h2>
-              <p>We're excited to have you on board. Thank you for joining our service!</p>
+              <p>We're excited to have you on board. Thank you for joining our Service!</p>
               <p style="margin: 20px 0;">
                 <a href="https://payever.careers/uk" style="padding: 10px 20px; background-color: #161617; color: white; text-decoration: none; border-radius: 5px;">
                   Get Started
