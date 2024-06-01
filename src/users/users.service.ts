@@ -48,8 +48,8 @@ export class UsersService {
     const mailOptions = {
       from: `Yahya from Payever`,
       to: user.email,
-      subject: 'Welcome to Our Service',
-      text: `Hello ${user.name}, welcome to our service!`,
+      subject: 'Welcome to Our Payever',
+      text: `Hello ${user.name}, welcome to our Payever!`,
       html: `
       <div style="font-family: Arial, sans-serif; color: #333;">
         <table style="width: 100%; max-width: 600px; margin: auto; border-collapse: collapse;">
